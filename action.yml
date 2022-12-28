@@ -1,0 +1,43 @@
+name: Build and Deploy Jekyll Site
+description: "Build given Jekyll source directory and deploy via GitHub Pages"
+
+inputs:
+  src_dir:
+    description: Build source directory
+    required: false
+    default: null
+  dest_dir:
+    description: Build destination directory
+    required: false
+    default: null
+  build_opts:
+    description: "Jekyll build options as YAML. `source` and `destination` will be ignored."
+    required: false
+    default: null
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        # Preparatory action
+        echo "JEKYLL_SITE_SRC=${{ inputs.src_dir || github.workspace }}" >> $GITHUB_ENV
+        echo "JEKYLL_SITE_DEST=${{ inputs.dest_dir }}" >> $GITHUB_ENV
+    - shell: bash
+      run: |
+        # Preliminary action
+        remote_branch="gh-pages"
+        remote_repo="https://${GITHUB_ACTOR}:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git"
+        [[ $JEKYLL_SITE_DEST ]] && dest_dir="${JEKYLL_SITE_DEST}" || dest_dir="${JEKYLL_SITE_SRC}/_site"
+        rm -rf $dest_dir
+        git clone --depth=1 --branch=$remote_branch -nq $remote_repo $dest_dir
+    - shell: bash
+      run: |
+        # Jekyll Build action
+        bundle exec ruby ${{ github.action_path }}/jekyll_build.rb
+      env:
+        BUILD_OPTS_YAML: ${{ inputs.build_opts }}
+    - shell: bash
+      run: |
+        # Deploy action
+        bash ${{ github.action_path }}/gh_deploy.sh
