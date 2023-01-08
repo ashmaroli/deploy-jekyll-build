@@ -39,6 +39,8 @@ runs:
     - shell: bash
       run: |
         # Preparatory action
+        resp=$(curl -H "Authorization: Bearer ${{ github.token }}" -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages")
+        bundle exec ruby ${{ github.action_path }}/check_gh_setting.rb $resp
         echo "JEKYLL_SITE_SRC=${{ inputs.src_dir || github.workspace }}" >> $GITHUB_ENV
         echo "JEKYLL_SITE_DEST=${{ inputs.dest_dir }}" >> $GITHUB_ENV
     - shell: bash
