@@ -57,6 +57,7 @@ runs:
         bundle exec ruby ${{ github.action_path }}/jekyll_build.rb
       env:
         BUILD_OPTS_YAML: ${{ inputs.build_opts }}
+        JEKYLL_ENV: production
     - shell: bash
       run: |
         # Deploy action
